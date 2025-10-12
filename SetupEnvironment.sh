@@ -316,26 +316,27 @@ install_latest_release() {
     # Ensure BASE_DIR exists
     mkdir -p "${DIR_A}"
 
-    # URL of the latest release zip
+    # GitHub repo and API URL for latest release
     GITHUB_REPO="AshtonCMiller/F150Infotainment"
     API_URL="https://api.github.com/repos/$GITHUB_REPO/releases/latest"
 
-    # Get the latest release zip URL
-    RELEASE_URL=$(curl -s $API_URL | grep "browser_download_url" | grep ".zip" | cut -d '"' -f 4)
+    # Get the latest release .tar.gz URL
+    RELEASE_URL=$(curl -s $API_URL | grep "browser_download_url" | grep ".tar.gz" | cut -d '"' -f 4)
 
     if [[ -z "$RELEASE_URL" ]]; then
-        echo -e "${RED}❌ Could not find latest release URL.${RESET}"
+        echo -e "${RED}❌ Could not find latest .tar.gz release URL.${RESET}"
         return 1
     fi
 
     echo "Downloading latest release from: $RELEASE_URL"
-    TMP_ZIP=$(mktemp /tmp/infotainment-XXXXXX.zip)
-    curl -L -o "$TMP_ZIP" "$RELEASE_URL"
+    TMP_TAR=$(mktemp /tmp/infotainment-XXXXXX.tar.gz)
+    curl -L -o "$TMP_TAR" "$RELEASE_URL"
 
     echo "Extracting release to ${DIR_A}..."
-    unzip -o "$TMP_ZIP" -d "${DIR_A}"
+    # Extract directly into DIR_A, overwrite existing files
+    tar -xzf "$TMP_TAR" -C "${DIR_A}" --strip-components=1
 
-    rm -f "$TMP_ZIP"
+    rm -f "$TMP_TAR"
 
     echo -e "${GREEN}${BOLD}✅ Latest release installed in ${DIR_A}${RESET}"
 }

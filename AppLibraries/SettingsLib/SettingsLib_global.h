@@ -1,0 +1,12 @@
+#ifndef SETTINGSLIB_GLOBAL_H
+#define SETTINGSLIB_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(SETTINGSLIB_LIBRARY)
+#define SETTINGSLIB_EXPORT Q_DECL_EXPORT
+#else
+#define SETTINGSLIB_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // SETTINGSLIB_GLOBAL_H

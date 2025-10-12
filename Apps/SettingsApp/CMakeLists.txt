@@ -21,6 +21,7 @@ qt_add_qml_module(appSettingsApp
         RESOURCES
         RESOURCES
         RESOURCES SettingsIcon.svg
+        QML_FILES Pages/Software.qml
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -35,7 +36,9 @@ set_target_properties(appSettingsApp PROPERTIES
 )
 
 target_link_libraries(appSettingsApp
-    PRIVATE Qt6::Quick
+    PUBLIC
+    Qt6::Quick
+    ThemeLib
 )
 
 include(GNUInstallDirs)

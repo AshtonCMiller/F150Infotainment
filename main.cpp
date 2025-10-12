@@ -12,6 +12,9 @@
 #include <Controllers/system.h>
 #include <Controllers/navigation.h>
 #include <Controllers/AppManager.h>
+#include <Controllers/UpdateManager.h>
+
+#include "ThemeLib/ThemeManager.h"
 
 class CachedNetworkAccessManagerFactory : public QQmlNetworkAccessManagerFactory {
 public:
@@ -28,6 +31,8 @@ public:
     }
 };
 
+// google maps resource
+// https://github.com/vladest/googlemaps
 
 /*
 
@@ -64,11 +69,14 @@ int main(int argc, char *argv[])
     System m_systemHandler;
     Navigation m_navigationHandler;
     AppManager m_appManager(&engine);
+    ThemeManager m_themeManager;
+    UpdateManager m_updateManager;
     m_appManager.initializeControllers();
     m_appManager.loadControllers();
 
     bool isProduction = QProcessEnvironment::systemEnvironment().contains("REAL_HARDWARE");
     engine.rootContext()->setContextProperty("isProduction", false); // isProduction);
+    m_updateManager.setUpdatesEnabled(isProduction);
 
     engine.addImportPath("/usr/lib/qt6/qml");
 
@@ -76,9 +84,11 @@ int main(int argc, char *argv[])
     engine.setNetworkAccessManagerFactory(new CachedNetworkAccessManagerFactory);
 
     QQmlContext * context( engine.rootContext() );
+    context->setContextProperty( "themeManager", &m_themeManager );
     context->setContextProperty( "systemHandler", &m_systemHandler );
     context->setContextProperty( "navigationHandler", &m_navigationHandler );
     context->setContextProperty( "appmanager", &m_appManager);
+    context->setContextProperty( "updateManager", &m_updateManager );
 
     QObject::connect(
         &engine,
@@ -93,6 +103,7 @@ int main(int argc, char *argv[])
 
     QString currentVersion = QCoreApplication::applicationVersion();
     qWarning() << "Current Version:" << currentVersion;
+    m_updateManager.setVersion(currentVersion);
 
     QObject *rootObject = engine.rootObjects().first();
     if (auto window = qobject_cast<QQuickWindow *>(rootObject)) {

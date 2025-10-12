@@ -8,26 +8,16 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Gui Qml Quick)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Qml Quick)
 
 add_library(ThemeLib SHARED
   ThemeManager.cpp
   ThemeManager.h
-  Theme.qrc
 )
-
-# qt_add_qml_module(appInfotainmentSystem
-#     URI ThemeLib
-#     VERSION 1.0
-#     SOURCES
-#       ThemeManager.cpp
-#       ThemeManager.h
-
-#     RESOURCES
-#       Theme.qrc
+target_link_libraries(ThemeLib PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick)
+# target_link_libraries(ThemeLib
+#   PUBLIC
 # )
-
-target_link_libraries(ThemeLib PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 
 target_compile_definitions(ThemeLib PRIVATE THEMELIB_LIBRARY)

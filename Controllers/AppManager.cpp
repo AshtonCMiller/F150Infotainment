@@ -25,7 +25,6 @@ void AppManager::loadApps() {
     }
 
     for (const QString &folderName : appsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
-        qWarning() << "Searching folder:" << folderName;
         QString infoPath = appsDir.filePath(folderName + "/" + folderName + "/appinfo.json");
         QFile file(infoPath);
         if (!file.open(QIODevice::ReadOnly))
@@ -44,7 +43,7 @@ void AppManager::loadApps() {
         QString absfilepath = appsDir.filePath(folderName + "/" + obj.value("qml").toString());
         app["qml"] = QUrl::fromLocalFile(absfilepath).toString();
         m_apps.append(app);
-        qWarning() << "Found app: " << app["name"];
+        qWarning() << "Loaded app: " << app["name"].toString();
     }
 
     emit appsChanged();
@@ -68,7 +67,7 @@ void AppManager::initializeControllers() {
             if (!lib.load()) {
                 qWarning() << "Failed to load controller lib" << fileInfo.fileName() << lib.errorString();
             } else {
-                qDebug() << "Successfully loaded controller lib" << fileInfo.fileName();
+                //qDebug() << "Successfully loaded controller lib" << fileInfo.fileName();
                 typedef void (*RegisterFunc)();
                 RegisterFunc reg = (RegisterFunc)  lib.resolve("registerPlugin");;
                 if (reg) {

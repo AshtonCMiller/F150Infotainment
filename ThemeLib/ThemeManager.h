@@ -1,11 +1,37 @@
+#pragma once
 #include <QObject>
+#include <QColor>
+#include <QVariantMap>
 
-class ThemeManager: public QObject
+
+#if defined(THEMELIB_LIBRARY)
+#  define THEMELIB_EXPORT Q_DECL_EXPORT
+#else
+#  define THEMELIB_EXPORT Q_DECL_IMPORT
+#endif
+
+class THEMELIB_EXPORT ThemeManager : public QObject
 {
-public:
-    static ThemeManager* getThemeInstance();
+    Q_OBJECT
+    Q_PROPERTY(QVariantMap colors READ colors NOTIFY colorsChanged)
+    Q_PROPERTY(bool darkMode READ darkMode WRITE setDarkMode NOTIFY darkModeChanged)
 
-    void loadTheme();
+public:
+    explicit ThemeManager(QObject *parent = nullptr);
+
+    // Accessors
+    QVariantMap colors() const { return m_colors; }
+
+    bool darkMode() const { return m_darkMode; }
+    void setDarkMode(bool enabled);
+
+signals:
+    void colorsChanged();
+    void darkModeChanged();
+
 private:
-    ThemeManager(QObject* parent = nullptr);
+    void updateColors();
+
+    bool m_darkMode;
+    QVariantMap m_colors;  // Semantic color map
 };

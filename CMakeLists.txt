@@ -38,7 +38,7 @@ qt_add_qml_module(appInfotainmentSystem
         SOURCES Controllers/system.h Controllers/system.cpp
         QML_FILES MapDisplay.qml
         SOURCES Controllers/navigation.h Controllers/navigation.cpp
-        SOURCES Controllers/updatemanager.h Controllers/updatemanager.cpp
+        SOURCES Controllers/UpdateManager.h Controllers/UpdateManager.cpp
         SOURCES Controllers/AppManager.h Controllers/AppManager.cpp
         SOURCES
 )
@@ -63,6 +63,7 @@ target_link_libraries(appInfotainmentSystem
 target_link_libraries(appInfotainmentSystem
     PUBLIC
     ControllerFactory
+    ThemeLib
 )
 target_link_libraries(appInfotainmentSystem PRIVATE Qt6::Core)
 
@@ -77,3 +78,4 @@ add_subdirectory(ControllerFactory) # Need this before all apps
 add_subdirectory(AppLibraries/SpotifyLib) # We will do app libraries first
 add_subdirectory(Apps/SettingsApp)
 add_subdirectory(Apps/Spotify)
+add_subdirectory(AppLibraries/SettingsLib)

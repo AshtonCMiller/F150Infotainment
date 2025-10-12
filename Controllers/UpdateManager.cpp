@@ -1,4 +1,4 @@
-#include "updatemanager.h"
+#include "UpdateManager.h"
 #include <QDebug>
 #include <QDir>
 #include <QFile>
@@ -11,7 +11,8 @@
 
 UpdateManager::UpdateManager(QObject *parent)
     : QObject(parent)
-    , m_UpdateStatus( "Update not started" )
+    , m_UpdateStatus( "Not checked for updates" )
+    , m_UpdateInProgress( false )
 {
     m_networkAccessManager = new QNetworkAccessManager(this);
 }
@@ -82,17 +83,19 @@ bool UpdateManager::installUpdate(const QString &archivePath) {
     marker.write(inactiveSlot.toUtf8());
     marker.close();
     setUpdateProgress( "Installed update." );
+    setUpdateStatus( "Update will apply on next startup." );
 
     return true;
 }
 
-void UpdateManager::checkForUpdate(const QString &currentVersion)
+void UpdateManager::checkForUpdate()
 {
     setUpdateInProgress( true );
     setUpdateStatus( "Checking for updates.." );
+    setUpdateProgress( "Checking update server" );
     QUrl url("https://api.github.com/repos/AshtonCMiller/F150Infotainment/releases/latest");
     QNetworkRequest request(url);
-    request.setRawHeader("User-Agent", "F150Infotainment-Updater");
+    request.setRawHeader("User-Agent", "Infotainment-Updater");
 
     QNetworkReply *reply = m_networkAccessManager->get(request);
     connect(reply, &QNetworkReply::finished, this, [=]() {
@@ -109,10 +112,10 @@ void UpdateManager::checkForUpdate(const QString &currentVersion)
         QJsonObject root = doc.object();
         QString latestVersion = root["tag_name"].toString();  // GitHub release tag
 
-        qDebug() << "Current version:" << currentVersion;
+        qDebug() << "Current version:" << m_Version;
         qDebug() << "Latest version:" << latestVersion;
 
-        if (latestVersion == currentVersion) {
+        if (latestVersion == m_Version) {
             setUpdateStatus( "Already up to date." );
             setUpdateProgress( "" );
             setUpdateInProgress( false );
@@ -142,6 +145,12 @@ void UpdateManager::checkForUpdate(const QString &currentVersion)
 
         qDebug() << "New update available:" << latestVersion;
         qDebug() << "Downloading from:" << downloadUrl;
+
+        if (m_updatesEnabled == false) {
+            setUpdateStatus( "Can not update from  development environment!" );
+            setUpdateProgress( "" );
+            setUpdateInProgress( false );
+        }
 
         downloadAndInstallUpdate(downloadUrl);
         reply->deleteLater();
@@ -193,4 +202,34 @@ void UpdateManager::setUpdateProgress(const QString &newUpdateProgress)
         return;
     m_UpdateProgress = newUpdateProgress;
     emit UpdateProgressChanged();
+}
+
+QString UpdateManager::Version() const
+{
+    return m_Version;
+}
+
+void UpdateManager::setVersion(const QString &newVersion)
+{
+    if (m_Version == newVersion)
+        return;
+    m_Version = newVersion;
+    emit VersionChanged();
+}
+
+void UpdateManager::setUpdatesEnabled(bool updatesEnabled)
+{
+    m_updatesEnabled = updatesEnabled;
+    if (updatesEnabled) {
+        markBootSuccessful();
+    }
+}
+
+void UpdateManager::markBootSuccessful()
+{
+    QFile file("/var/lib/myapp/boot-ok");
+    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        file.write("ok");
+        file.close();
+    }
 }

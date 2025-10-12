@@ -14,8 +14,8 @@ DIR_A="${BASE_DIR}/infotainment-A"
 DIR_B="${BASE_DIR}/infotainment-B"
 SYMLINK="${BASE_DIR}/infotainment"
 PENDING_FLAG="${BASE_DIR}/infotainment-pending"
-SWAP_SCRIPT="/usr/local/bin/myapp-swap-on-boot.sh"
-SERVICE_FILE="/etc/systemd/system/myapp-update-swap.service"
+SWAP_SCRIPT="/usr/local/bin/infotainment-swap-on-boot.sh"
+SERVICE_FILE="/etc/systemd/system/infotainment-update-swap.service"
 
 # === OS Check ===
 if ! grep -qiE "Arch" /etc/os-release; then
@@ -109,25 +109,25 @@ DIR_A="${BASE_DIR}/infotainment-A"
 DIR_B="${BASE_DIR}/infotainment-B"
 PENDING_FLAG="${BASE_DIR}/infotainment-pending"
 
-echo "[myapp-swap] Checking for pending update..."
+echo "[infotainment-swap] Checking for pending update..."
 
 if [[ -f "$PENDING_FLAG" ]]; then
-    echo "[myapp-swap] Pending update detected — swapping active directory."
+    echo "[infotainment-swap] Pending update detected — swapping active directory."
 
     CURRENT_TARGET=$(readlink "$LINK_PATH" || true)
 
     if [[ "$CURRENT_TARGET" == "$DIR_A" ]]; then
         ln -sfn "$DIR_B" "$LINK_PATH"
-        echo "[myapp-swap] Switched to infotainment-B"
+        echo "[infotainment-swap] Switched to infotainment-B"
     else
         ln -sfn "$DIR_A" "$LINK_PATH"
-        echo "[myapp-swap] Switched to infotainment-A"
+        echo "[infotainment-swap] Switched to infotainment-A"
     fi
 
     rm -f "$PENDING_FLAG"
-    echo "[myapp-swap] Update applied successfully."
+    echo "[infotainment-swap] Update applied successfully."
 else
-    echo "[myapp-swap] No pending update — nothing to do."
+    echo "[infotainment-swap] No pending update — nothing to do."
 fi
 EOF
 
@@ -141,7 +141,7 @@ cat > "$SERVICE_FILE" <<EOF
 [Unit]
 Description=Apply pending infotainment update on boot
 DefaultDependencies=no
-Before=myapp.service
+Before=infotainment.service
 After=local-fs.target
 
 [Service]
@@ -154,25 +154,25 @@ EOF
 
 # Reload systemd, enable and start the service
 systemctl daemon-reload
-systemctl enable myapp-update-swap.service
+systemctl enable infotainment-update-swap.service
 
 echo -e "${GREEN}${BOLD}✅ Systemd service created and enabled:${RESET} ${CYAN}$SERVICE_FILE${RESET}"
-echo -e "Service will run on boot before ${YELLOW}myapp.service${RESET}."
+echo -e "Service will run on boot before ${YELLOW}infotainment.service${RESET}."
 
 # === Create New Swap Script with Pending File Logic ===
-echo -e "\n${CYAN}${BOLD}Creating new myapp swap-on-boot script...${RESET}"
+echo -e "\n${CYAN}${BOLD}Creating new infotainment swap-on-boot script...${RESET}"
 
 # Ensure var lib directory exists for update tracking
-mkdir -p /var/lib/myapp
-chmod 755 /var/lib/myapp
+mkdir -p /var/lib/infotainment
+chmod 755 /var/lib/infotainment
 
-cat > /usr/local/bin/myapp-swap-on-boot.sh <<'EOF'
+cat > /usr/local/bin/infotainment-swap-on-boot.sh <<'EOF'
 #!/usr/bin/env bash
 set -e
 
-PENDING_FILE="/var/lib/myapp/pending-update"
-ROLLBACK_FILE="/var/lib/myapp/rollback-slot"
-ACTIVE_SYMLINK="/opt/myapp"
+PENDING_FILE="/var/lib/infotainment/pending-update"
+ROLLBACK_FILE="/var/lib/infotainment/rollback-slot"
+ACTIVE_SYMLINK="/opt/infotainment"
 
 # Only proceed if there's a pending update
 if [ -f "$PENDING_FILE" ]; then
@@ -194,19 +194,19 @@ if [ -f "$PENDING_FILE" ]; then
 fi
 EOF
 
-chmod +x /usr/local/bin/myapp-swap-on-boot.sh
-echo -e "${GREEN}${BOLD}✅ Swap script created and made executable:${RESET} ${CYAN}/usr/local/bin/myapp-swap-on-boot.sh${RESET}"
+chmod +x /usr/local/bin/infotainment-swap-on-boot.sh
+echo -e "${GREEN}${BOLD}✅ Swap script created and made executable:${RESET} ${CYAN}/usr/local/bin/infotainment-swap-on-boot.sh${RESET}"
 
 # === Create Rollback Script ===
 echo -e "\n${CYAN}${BOLD}Creating rollback script...${RESET}"
 
-cat > /usr/local/bin/myapp-rollback-if-needed.sh <<'EOF'
+cat > /usr/local/bin/infotainment-rollback-if-needed.sh <<'EOF'
 #!/usr/bin/env bash
 set -e
 
-ROLLBACK_FILE="/var/lib/myapp/rollback-slot"
-ACTIVE_SYMLINK="/opt/myapp"
-MARKER_FILE="/var/lib/myapp/boot-ok"
+ROLLBACK_FILE="/var/lib/infotainment/rollback-slot"
+ACTIVE_SYMLINK="/opt/infotainment"
+MARKER_FILE="/var/lib/infotainment/boot-ok"
 
 # If the boot-ok marker does not exist, previous boot failed
 if [ -f "$ROLLBACK_FILE" ] && [ ! -f "$MARKER_FILE" ]; then
@@ -222,23 +222,23 @@ else
 fi
 EOF
 
-chmod +x /usr/local/bin/myapp-rollback-if-needed.sh
-echo -e "${GREEN}${BOLD}✅ Rollback script created and made executable:${RESET} ${CYAN}/usr/local/bin/myapp-rollback-if-needed.sh${RESET}"
+chmod +x /usr/local/bin/infotainment-rollback-if-needed.sh
+echo -e "${GREEN}${BOLD}✅ Rollback script created and made executable:${RESET} ${CYAN}/usr/local/bin/infotainment-rollback-if-needed.sh${RESET}"
 
 # === Create Rollback Systemd Service ===
 echo -e "\n${CYAN}${BOLD}Creating rollback systemd service...${RESET}"
 
-ROLLBACK_SERVICE_FILE="/etc/systemd/system/myapp-rollback.service"
+ROLLBACK_SERVICE_FILE="/etc/systemd/system/infotainment-rollback.service"
 
 cat > "$ROLLBACK_SERVICE_FILE" <<EOF
 [Unit]
-Description=Rollback to previous slot if myapp failed last boot
+Description=Rollback to previous slot if infotainment failed last boot
 After=local-fs.target
-Before=myapp-update-swap.service
+Before=infotainment-update-swap.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/myapp-rollback-if-needed.sh
+ExecStart=/usr/local/bin/infotainment-rollback-if-needed.sh
 
 [Install]
 WantedBy=multi-user.target
@@ -246,15 +246,15 @@ EOF
 
 # Reload systemd, enable the rollback service
 systemctl daemon-reload
-systemctl enable myapp-rollback.service
+systemctl enable infotainment-rollback.service
 
 echo -e "${GREEN}${BOLD}✅ Rollback service created and enabled:${RESET} ${CYAN}$ROLLBACK_SERVICE_FILE${RESET}"
-echo -e "Rollback service will run on boot before myapp-update-swap.service"
+echo -e "Rollback service will run on boot before infotainment-update-swap.service"
 
 # === Create Clear Marker Systemd Service ===
 echo -e "\n${CYAN}${BOLD}Creating clear-marker systemd service...${RESET}"
 
-CLEAR_MARKER_SERVICE_FILE="/etc/systemd/system/myapp-clear-marker.service"
+CLEAR_MARKER_SERVICE_FILE="/etc/systemd/system/infotainment-clear-marker.service"
 
 cat > "$CLEAR_MARKER_SERVICE_FILE" <<EOF
 [Unit]
@@ -264,7 +264,7 @@ Before=shutdown.target
 
 [Service]
 Type=oneshot
-ExecStart=/bin/rm -f /var/lib/myapp/boot-ok
+ExecStart=/bin/rm -f /var/lib/infotainment/boot-ok
 
 [Install]
 WantedBy=shutdown.target
@@ -272,12 +272,78 @@ EOF
 
 # Reload systemd, enable the service
 systemctl daemon-reload
-systemctl enable myapp-clear-marker.service
+systemctl enable infotainment-clear-marker.service
 
 echo -e "${GREEN}${BOLD}✅ Clear-marker service created and enabled:${RESET} ${CYAN}$CLEAR_MARKER_SERVICE_FILE${RESET}"
 echo -e "This will remove the health marker on shutdown to allow rollback detection on next boot."
 
+# === Create main Infotainment System systemd service ===
+echo -e "\n${CYAN}${BOLD}Creating main infotainment systemd service...${RESET}"
 
+INFOTAINMENT_SERVICE_FILE="/etc/systemd/system/infotainment.service"
+
+cat > "$INFOTAINMENT_SERVICE_FILE" <<EOF
+[Unit]
+Description=F150 Infotainment System
+After=network.target
+Wants=network.target
+After=local-fs.target
+
+[Service]
+Type=simple
+ExecStart=/opt/myapp/appInfotainmentSystem
+Restart=always
+RestartSec=5
+Environment=LD_LIBRARY_PATH=/opt/myapp/lib
+User=ashton
+Group=ashton
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Reload systemd, enable and start the service
+systemctl daemon-reload
+systemctl enable infotainment.service
+systemctl start infotainment.service
+
+echo -e "${GREEN}${BOLD}✅ Main infotainment service created, enabled, and started:${RESET} ${CYAN}$INFOTAINMENT_SERVICE_FILE${RESET}"
+
+# === Function to install latest release from GitHub ===
+install_latest_release() {
+    echo -e "\n${CYAN}${BOLD}Installing latest release from GitHub...${RESET}"
+
+    # Ensure BASE_DIR exists
+    mkdir -p "${DIR_A}"
+
+    # URL of the latest release zip
+    GITHUB_REPO="AshtonCMiller/F150Infotainment"
+    API_URL="https://api.github.com/repos/$GITHUB_REPO/releases/latest"
+
+    # Get the latest release zip URL
+    RELEASE_URL=$(curl -s $API_URL | grep "browser_download_url" | grep ".zip" | cut -d '"' -f 4)
+
+    if [[ -z "$RELEASE_URL" ]]; then
+        echo -e "${RED}❌ Could not find latest release URL.${RESET}"
+        return 1
+    fi
+
+    echo "Downloading latest release from: $RELEASE_URL"
+    TMP_ZIP=$(mktemp /tmp/infotainment-XXXXXX.zip)
+    curl -L -o "$TMP_ZIP" "$RELEASE_URL"
+
+    echo "Extracting release to ${DIR_A}..."
+    unzip -o "$TMP_ZIP" -d "${DIR_A}"
+
+    rm -f "$TMP_ZIP"
+
+    echo -e "${GREEN}${BOLD}✅ Latest release installed in ${DIR_A}${RESET}"
+}
+
+# Call the function at the end of the installer
+install_latest_release
+echo -e "\n${GREEN}${BOLD}🎉 Installation completed successfully!${RESET}"
+echo -e "Reboot to apply update."
 # === Done ===
 # echo -e "\n${GREEN}${BOLD}🎉 Installation completed successfully!${RESET}"
 # echo -e "Next steps:"

@@ -1,0 +1,6 @@
+{
+    "id": "settings",
+    "name": "Settings",
+    "icon" : "SettingsApp/SettingsIcon.svg",
+    "qml" : "SettingsApp/Main.qml"
+}

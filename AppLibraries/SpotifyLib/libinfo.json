@@ -1,0 +1,7 @@
+{
+    "id": "spotifylib",
+    "name": "Spotify Library",
+    "description" : "Handles all backend management for Spotify",
+    "controllerLibPath" : "libSpotifyLib.so",
+    "controller": "SpotifyController"
+}

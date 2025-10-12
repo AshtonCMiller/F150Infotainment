@@ -1,0 +1,12 @@
+#ifndef SPOTIFYLIB_GLOBAL_H
+#define SPOTIFYLIB_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(SPOTIFYLIB_LIBRARY)
+#define SPOTIFYLIB_EXPORT Q_DECL_EXPORT
+#else
+#define SPOTIFYLIB_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // SPOTIFYLIB_GLOBAL_H

@@ -1,0 +1,8 @@
+{
+    "id": "spotify",
+    "name": "Spotify",
+    "icon" : "Spotify/SpotifyIcon.svg",
+    "qml" : "Spotify/Main.qml",
+    "controllerLibPath" : "Controllers/SpotifyController.cpp",
+    "controller": "SpotifyController"
+}

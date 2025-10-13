@@ -279,6 +279,26 @@ systemctl enable infotainment-clear-marker.service
 echo -e "${GREEN}${BOLD}✅ Clear-marker service created and enabled:${RESET} ${CYAN}$CLEAR_MARKER_SERVICE_FILE${RESET}"
 echo -e "This will remove the health marker on shutdown to allow rollback detection on next boot."
 
+
+# === Create startx file ===
+echo -e "\n${CYAN}${BOLD}Creating X11 window starter...${RESET}"
+cat > "/home/ashton/.xinitrc" << EOF
+#!/bin/sh
+
+# Disable screen blanking
+xset s off
+xset -dpms
+
+# set background to black
+xsetroot -solid black
+
+exec /opt/infotainment/appInfotainmentSystem
+
+# if it exits, end X so it will restart.
+exit 0
+
+EOF
+
 # === Create main Infotainment System systemd service ===
 echo -e "\n${CYAN}${BOLD}Creating main infotainment systemd service...${RESET}"
 
@@ -287,31 +307,23 @@ INFOTAINMENT_SERVICE_FILE="/etc/systemd/system/infotainment.service"
 cat > "$INFOTAINMENT_SERVICE_FILE" <<EOF
 [Unit]
 Description=F150 Infotainment System (X11 + App)
-After=network.target local-fs.target systemd-user-sessions.service
-Wants=network.target
+After=getty@tty1.service
+Requires=getty@tty1.service
 
 [Service]
-Type=simple
-
-# Start your infotainment app
-ExecStart=/bin/bash -c '/usr/bin/xinit /opt/infotainment/appInfotainmentSystem -- :0 -nolisten tcp vt1'
-
-# Restart policy
-Restart=always
-RestartSec=5
-
-# Run as a dedicated non-root user
 User=ashton
-Group=ashton
-
-# Ensure the service has access to required TTY
-TTYPath=/dev/tty1
+Type=simple
+WorkingDirectory=/home/ashton
+ExecStart=/usr/bin/startx -- -nocursor
 StandardInput=tty
 StandardOutput=journal
-StandardError=journal
+Restart=always
+RestartSec=5
+TTYPath=/dev/tty1
+ENVIRONMENT=REAL_HARDWARE=1
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=graphical.target
 EOF
 
 

@@ -291,10 +291,10 @@ After=local-fs.target
 
 [Service]
 Type=simple
-ExecStart=/opt/myapp/appInfotainmentSystem
+ExecStart=/opt/infotainment/appInfotainmentSystem
 Restart=always
 RestartSec=5
-Environment=LD_LIBRARY_PATH=/opt/myapp/lib
+Environment=LD_LIBRARY_PATH=/opt/infotainment/lib
 User=ashton
 Group=ashton
 
@@ -352,4 +352,4 @@ echo -e "Reboot to apply update."
 # echo -e "  - Touch flag file to trigger swap on next boot: ${CYAN}touch $PENDING_FLAG${RESET}"
 # echo -e "  - Reboot to apply update."
 
-# curl -o SetupEnvironment.sh "https://raw.githubusercontent.com/AshtonCMiller/F150Infotainment/refs/heads/main/SetupEnvironment.sh" & chmod +x ./SetupEnvironment.sh & ./SetupEnvironment.sh
+# curl -o ./SetupEnvironment.sh "https://raw.githubusercontent.com/AshtonCMiller/F150Infotainment/refs/heads/main/SetupEnvironment.sh" & chmod +x ./SetupEnvironment.sh & sudo ./SetupEnvironment.sh

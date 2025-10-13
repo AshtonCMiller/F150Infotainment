@@ -15,12 +15,12 @@ qt_add_executable(appInfotainmentSystem
 
 target_compile_definitions(appInfotainmentSystem
     PRIVATE
-    APP_VERSION="1.0.0"
+    APP_VERSION="1.0.1"
 )
 
 qt_add_qml_module(appInfotainmentSystem
     URI InfotainmentSystem
-    VERSION 1.0
+    VERSION 1.0.1
     QML_FILES
         Main.qml
         QML_FILES
@@ -52,6 +52,9 @@ set_target_properties(appInfotainmentSystem PROPERTIES
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
+
+    INSTALL_RPATH "\$ORIGIN/ControllerFactory:\$ORIGIN/ThemeLib"
+    BUILD_WITH_INSTALL_RPATH TRUE
 )
 
 target_link_libraries(appInfotainmentSystem

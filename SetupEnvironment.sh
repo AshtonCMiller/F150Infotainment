@@ -280,62 +280,62 @@ echo -e "${GREEN}${BOLD}✅ Clear-marker service created and enabled:${RESET} ${
 echo -e "This will remove the health marker on shutdown to allow rollback detection on next boot."
 
 ########################################
-# Create 'user' account with sudo privileges
+# ✅ Setup autologin for user 'ashton'
 ########################################
-echo "[INFO] Creating 'user' account with sudo privileges..."
+echo "[INFO] Setting up auto-login for user 'ashton'..."
 
-# Ensure the shell exists
-if [ ! -x /bin/bash ]; then
-    echo "[ERROR] /bin/bash not found. Install bash before continuing."
-    exit 1
+# 1. Ensure the user 'ashton' exists
+if ! id "ashton" &>/dev/null; then
+    echo "[INFO] Creating user 'ashton'..."
+    useradd -m -s /bin/bash ashton
+    echo "ashton:password" | chpasswd
+    usermod -aG sudo ashton
 fi
 
-# Create the user if it does not already exist
-if ! id "user" &>/dev/null; then
-    useradd -m -s /bin/bash user
-    echo "user:password" | chpasswd
-    echo "[INFO] User 'user' created."
-else
-    echo "[INFO] User 'user' already exists. Skipping creation."
+# 2. Ensure PAM + shadow are installed (required for agetty autologin)
+pacman -S --noconfirm pambase shadow util-linux
+
+# 3. Ensure correct PAM login file exists
+if [ ! -f /etc/pam.d/login ]; then
+    echo "[INFO] Restoring default /etc/pam.d/login..."
+    cat <<'EOF' >/etc/pam.d/login
+#%PAM-1.0
+auth       required   pam_securetty.so
+auth       requisite  pam_nologin.so
+auth       include    system-local-login
+account    include    system-local-login
+session    include    system-local-login
+EOF
 fi
 
-# Ensure sudo group exists
-if ! getent group sudo >/dev/null; then
-    groupadd sudo
-fi
+# 4. Get path to agetty
+AGETTY_PATH=$(command -v agetty)
 
-# Add user to sudo group explicitly
-usermod -aG sudo user
-
-# Allow passwordless sudo for user (optional)
-if ! grep -q "^user ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
-    echo "user ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-fi
-
-########################################
-# Enable Auto-login for 'user' on TTY1
-########################################
-echo "[INFO] Enabling auto-login for 'user'..."
-
+# 5. Create override directory for getty@tty1
 mkdir -p /etc/systemd/system/getty@tty1.service.d
 
-cat >/etc/systemd/system/getty@tty1.service.d/autologin.conf <<'EOF'
+# 6. Create autologin override file
+cat >/etc/systemd/system/getty@tty1.service.d/autologin.conf <<EOF
+[Unit]
+After=systemd-user-sessions.service
+
 [Service]
 ExecStart=
-ExecStart=-/sbin/agetty --autologin user --noclear %I $TERM
+ExecStart=-${AGETTY_PATH} --autologin ashton --noclear %I \$TERM
+Type=simple
 EOF
 
-# Ensure PAM is aware of the new user before enabling
+# 7. Reload systemd and enable the service
 systemctl daemon-reexec
 systemctl daemon-reload
 systemctl enable getty@tty1.service
 
-echo "[INFO] Auto-login for 'user' on TTY1 is set up successfully."
+echo "[INFO] ✅ Auto-login configured for user 'ashton' on TTY1."
 
 
 # === Create startx file ===
 echo -e "\n${CYAN}${BOLD}Creating X11 window starter...${RESET}"
-cat > "/home/user/.xinitrc" << EOF
+cat > "/home/ashton/.xinitrc" << EOF
 #!/bin/sh
 
 # Disable screen blanking
@@ -364,9 +364,9 @@ After=getty@tty1.service
 Requires=getty@tty1.service
 
 [Service]
-User=user
+User=ashton
 Type=simple
-WorkingDirectory=/home/user
+WorkingDirectory=/home/ashton
 ExecStart=/usr/bin/startx -- -nocursor
 StandardInput=tty
 StandardOutput=journal

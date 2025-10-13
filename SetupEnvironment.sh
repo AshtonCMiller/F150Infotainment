@@ -325,7 +325,7 @@ EOF
 # Reload systemd, enable and start the service
 systemctl daemon-reload
 systemctl enable infotainment.service
-systemctl start infotainment.service
+# systemctl start infotainment.service
 
 echo -e "${GREEN}${BOLD}✅ Main infotainment service created, enabled, and started:${RESET} ${CYAN}$INFOTAINMENT_SERVICE_FILE${RESET}"
 

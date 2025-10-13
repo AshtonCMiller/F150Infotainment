@@ -67,6 +67,8 @@ QT_PACKAGES=(
     qt6-translations
     qt6-location
     qt6-quick3d
+    xorg
+    xorg-xinit
 )
 pacman -Syu --noconfirm
 pacman -S --needed --noconfirm "${QT_PACKAGES[@]}"
@@ -284,19 +286,37 @@ INFOTAINMENT_SERVICE_FILE="/etc/systemd/system/infotainment.service"
 
 cat > "$INFOTAINMENT_SERVICE_FILE" <<EOF
 [Unit]
-Description=F150 Infotainment System
-After=network.target
+Description=F150 Infotainment System (X11 + App)
+After=network.target local-fs.target systemd-user-sessions.service
 Wants=network.target
-After=local-fs.target
 
 [Service]
 Type=simple
-ExecStart=/opt/infotainment/appInfotainmentSystem
+
+# Set up X11 display number
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/tmp/.Xauthority
+Environment=LD_LIBRARY_PATH=/opt/myapp/lib
+
+# Start Xorg server in background if not already running
+ExecStartPre=/usr/bin/Xorg :0 -noreset -nolisten tcp vt1 & sleep 2
+
+# Start your infotainment app
+ExecStart=/opt/myapp/appInfotainmentSystem
+
+# Restart policy
 Restart=always
 RestartSec=5
-Environment=LD_LIBRARY_PATH=/opt/infotainment/lib
+
+# Run as a dedicated non-root user
 User=ashton
 Group=ashton
+
+# Ensure the service has access to required TTY
+TTYPath=/dev/tty1
+StandardInput=tty
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
@@ -353,3 +373,9 @@ echo -e "Reboot to apply update."
 # echo -e "  - Reboot to apply update."
 
 # curl -o ./SetupEnvironment.sh "https://raw.githubusercontent.com/AshtonCMiller/F150Infotainment/refs/heads/main/SetupEnvironment.sh" & chmod +x ./SetupEnvironment.sh & sudo ./SetupEnvironment.sh
+
+
+
+# Need to:
+# install Xorg & xorg-xinit
+# Update infotainment.service to instantiate Xorg server

@@ -294,7 +294,7 @@ Wants=network.target
 Type=simple
 
 # Start your infotainment app
-ExecStart=/usr/bin/xinit /opt/infotainment/appInfotainmentSystem -- :0 -nolisten tcp vt1
+ExecStart=/bin/bash -c '/usr/bin/xinit /opt/infotainment/appInfotainmentSystem -- :0 -nolisten tcp vt1'
 
 # Restart policy
 Restart=always
@@ -367,6 +367,7 @@ echo -e "Reboot to apply update."
 
 # curl -o ./SetupEnvironment.sh "https://raw.githubusercontent.com/AshtonCMiller/F150Infotainment/refs/heads/main/SetupEnvironment.sh" & chmod +x ./SetupEnvironment.sh & sudo ./SetupEnvironment.sh
 
+# sudo sh -c "$(curl https://raw.githubusercontent.com/AshtonCMiller/F150Infotainment/refs/heads/main/SetupEnvironment.sh)"
 
 
 # Need to:

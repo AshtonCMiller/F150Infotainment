@@ -347,8 +347,7 @@ xset -dpms
 xset s off
 xset s noblank
 
-# Optional: start lightweight window manager (recommended for Qt fullscreen apps)
-matchbox-window-manager &
+xsetroot -cursor-name left_ptr
 
 # Launch the infotainment app
 /opt/myapp/appInfotainmentSystem

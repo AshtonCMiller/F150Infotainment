@@ -333,6 +333,24 @@ systemctl enable getty@tty1.service
 echo "[INFO] ✅ Auto-login configured for user 'ashton' on TTY1."
 
 ########################################
+# ✅ Ensure 'ashton' is in the video group
+########################################
+echo "[INFO] Adding user 'ashton' to video group for X11 access..."
+
+# Create the video group if it doesn't exist
+if ! getent group video >/dev/null; then
+    groupadd video
+fi
+
+# Add 'ashton' to video group if not already a member
+if id -nG "ashton" | grep -qw "video"; then
+    echo "[INFO] User 'ashton' is already in the video group."
+else
+    usermod -aG video ashton
+    echo "[INFO] User 'ashton' added to video group."
+fi
+
+########################################
 # ✅ Configure auto-login to launch infotainment app
 ########################################
 echo "[INFO] Configuring auto-login to launch X and infotainment app for 'ashton'..."

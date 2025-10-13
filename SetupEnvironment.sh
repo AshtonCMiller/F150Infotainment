@@ -293,16 +293,8 @@ Wants=network.target
 [Service]
 Type=simple
 
-# Set up X11 display number
-Environment=DISPLAY=:0
-Environment=XAUTHORITY=/tmp/.Xauthority
-Environment=LD_LIBRARY_PATH=/opt/myapp/lib
-
-# Start Xorg server in background if not already running
-ExecStartPre=/usr/bin/Xorg :0 -noreset -nolisten tcp vt1 & sleep 2
-
 # Start your infotainment app
-ExecStart=/opt/myapp/appInfotainmentSystem
+ExecStart=/usr/bin/xinit /opt/infotainment/appInfotainmentSystem -- :0 -nolisten tcp vt1
 
 # Restart policy
 Restart=always
@@ -321,6 +313,7 @@ StandardError=journal
 [Install]
 WantedBy=multi-user.target
 EOF
+
 
 # Reload systemd, enable and start the service
 systemctl daemon-reload

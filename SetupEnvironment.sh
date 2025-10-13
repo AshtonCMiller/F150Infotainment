@@ -280,25 +280,34 @@ echo -e "${GREEN}${BOLD}✅ Clear-marker service created and enabled:${RESET} ${
 echo -e "This will remove the health marker on shutdown to allow rollback detection on next boot."
 
 ########################################
-# Add 'user' account with sudo access
+# Create 'user' account with sudo privileges
 ########################################
 echo "[INFO] Creating 'user' account with sudo privileges..."
 
-# Create user if it doesn't already exist
+# Ensure the shell exists
+if [ ! -x /bin/bash ]; then
+    echo "[ERROR] /bin/bash not found. Install bash before continuing."
+    exit 1
+fi
+
+# Create the user if it does not already exist
 if ! id "user" &>/dev/null; then
-    useradd -m -G sudo -s /bin/bash user
+    useradd -m -s /bin/bash user
     echo "user:password" | chpasswd
     echo "[INFO] User 'user' created."
 else
     echo "[INFO] User 'user' already exists. Skipping creation."
 fi
 
-# Ensure sudo group exists (should be default on most distros)
+# Ensure sudo group exists
 if ! getent group sudo >/dev/null; then
     groupadd sudo
 fi
 
-# Add user to sudoers file without password prompt
+# Add user to sudo group explicitly
+usermod -aG sudo user
+
+# Allow passwordless sudo for user (optional)
 if ! grep -q "^user ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
     echo "user ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 fi
@@ -308,23 +317,21 @@ fi
 ########################################
 echo "[INFO] Enabling auto-login for 'user'..."
 
-# Create override directory for getty@tty1
 mkdir -p /etc/systemd/system/getty@tty1.service.d
 
-# Create the override configuration
 cat >/etc/systemd/system/getty@tty1.service.d/autologin.conf <<'EOF'
 [Service]
 ExecStart=
 ExecStart=-/sbin/agetty --autologin user --noclear %I $TERM
 EOF
 
-# Reload systemd daemon to apply changes
+# Ensure PAM is aware of the new user before enabling
+systemctl daemon-reexec
 systemctl daemon-reload
-
-# Enable getty autologin service
 systemctl enable getty@tty1.service
 
-echo "[INFO] Auto-login for 'user' on TTY1 is set up."
+echo "[INFO] Auto-login for 'user' on TTY1 is set up successfully."
+
 
 # === Create startx file ===
 echo -e "\n${CYAN}${BOLD}Creating X11 window starter...${RESET}"

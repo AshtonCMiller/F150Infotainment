@@ -279,10 +279,56 @@ systemctl enable infotainment-clear-marker.service
 echo -e "${GREEN}${BOLD}✅ Clear-marker service created and enabled:${RESET} ${CYAN}$CLEAR_MARKER_SERVICE_FILE${RESET}"
 echo -e "This will remove the health marker on shutdown to allow rollback detection on next boot."
 
+########################################
+# Add 'user' account with sudo access
+########################################
+echo "[INFO] Creating 'user' account with sudo privileges..."
+
+# Create user if it doesn't already exist
+if ! id "user" &>/dev/null; then
+    useradd -m -G sudo -s /bin/bash user
+    echo "user:password" | chpasswd
+    echo "[INFO] User 'user' created."
+else
+    echo "[INFO] User 'user' already exists. Skipping creation."
+fi
+
+# Ensure sudo group exists (should be default on most distros)
+if ! getent group sudo >/dev/null; then
+    groupadd sudo
+fi
+
+# Add user to sudoers file without password prompt
+if ! grep -q "^user ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
+    echo "user ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+fi
+
+########################################
+# Enable Auto-login for 'user' on TTY1
+########################################
+echo "[INFO] Enabling auto-login for 'user'..."
+
+# Create override directory for getty@tty1
+mkdir -p /etc/systemd/system/getty@tty1.service.d
+
+# Create the override configuration
+cat >/etc/systemd/system/getty@tty1.service.d/autologin.conf <<'EOF'
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin user --noclear %I $TERM
+EOF
+
+# Reload systemd daemon to apply changes
+systemctl daemon-reload
+
+# Enable getty autologin service
+systemctl enable getty@tty1.service
+
+echo "[INFO] Auto-login for 'user' on TTY1 is set up."
 
 # === Create startx file ===
 echo -e "\n${CYAN}${BOLD}Creating X11 window starter...${RESET}"
-cat > "/home/ashton/.xinitrc" << EOF
+cat > "/home/user/.xinitrc" << EOF
 #!/bin/sh
 
 # Disable screen blanking
@@ -311,9 +357,9 @@ After=getty@tty1.service
 Requires=getty@tty1.service
 
 [Service]
-User=ashton
+User=user
 Type=simple
-WorkingDirectory=/home/ashton
+WorkingDirectory=/home/user
 ExecStart=/usr/bin/startx -- -nocursor
 StandardInput=tty
 StandardOutput=journal

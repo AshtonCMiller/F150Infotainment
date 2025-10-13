@@ -332,6 +332,45 @@ systemctl enable getty@tty1.service
 
 echo "[INFO] ✅ Auto-login configured for user 'ashton' on TTY1."
 
+########################################
+# ✅ Configure auto-login to launch infotainment app
+########################################
+echo "[INFO] Configuring auto-login to launch X and infotainment app for 'ashton'..."
+
+# Create .xinitrc in ashton's home
+XINITRC="/home/ashton/.xinitrc"
+cat >/home/ashton/.xinitrc <<'EOF'
+#!/usr/bin/env bash
+
+# Optional: disable DPMS / screen blanking
+xset -dpms
+xset s off
+xset s noblank
+
+# Optional: start lightweight window manager (recommended for Qt fullscreen apps)
+matchbox-window-manager &
+
+# Launch the infotainment app
+/opt/myapp/appInfotainmentSystem
+EOF
+
+chown ashton:ashton "$XINITRC"
+chmod +x "$XINITRC"
+
+# Modify .bash_profile to automatically run xinit for this user on TTY1
+BASH_PROFILE="/home/ashton/.bash_profile"
+if ! grep -q "xinit" "$BASH_PROFILE" 2>/dev/null; then
+    cat >> "$BASH_PROFILE" <<'EOF'
+
+# Auto-start X and infotainment on login
+if [[ -z "$DISPLAY" ]] && [[ "$(tty)" == "/dev/tty1" ]]; then
+    exec /usr/bin/xinit
+fi
+EOF
+fi
+
+echo "[INFO] ✅ Auto-login for 'ashton' will now start X and the infotainment app."
+
 
 # === Create startx file ===
 echo -e "\n${CYAN}${BOLD}Creating X11 window starter...${RESET}"

@@ -402,12 +402,11 @@ xset -dpms
 # set background to black
 xsetroot -solid black
 
-LOGFILE="$HOME/applog.log"
 # Clear old logs
-rm -rf $LOGFILE
+rm -rf ~/applog.log
 
 # Start logging everything
-exec > >(tee -a "$LOGFILE") 2>&1
+exec > >(tee -a "./applog.log") 2>&1
 echo "=== X session started at $(date) ==="
 
 # Your commands

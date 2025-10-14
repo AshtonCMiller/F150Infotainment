@@ -411,7 +411,7 @@ exec > >(tee -a "$LOGFILE") 2>&1
 echo "=== X session started at $(date) ==="
 
 # Your commands
-/opt/myapp/appInfotainmentSystem
+/opt/infotainment/appInfotainmentSystem
 
 echo "=== X session ended at $(date) ==="
 

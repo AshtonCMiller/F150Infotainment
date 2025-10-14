@@ -381,7 +381,8 @@ if ! grep -q "xinit" "$BASH_PROFILE" 2>/dev/null; then
 
 # Auto-start X and infotainment on login
 if [[ -z "$DISPLAY" ]] && [[ "$(tty)" == "/dev/tty1" ]]; then
-    exec /usr/bin/xinit
+    startx
+    #exec /usr/bin/xinit
 fi
 EOF
 fi
@@ -492,5 +493,29 @@ echo -e "Reboot to apply update."
 
 
 # Need to:
-# install Xorg & xorg-xinit
-# Update infotainment.service to instantiate Xorg server
+# setup infotainment.service in
+# /home/ashton/.config/systemd/user/infotainment.service
+# with the following:
+# [Unit]
+# Description=F150 Infotainment X App
+# After=graphical.target
+
+# [Service]
+# Type=simple
+# ExecStart=/usr/bin/xinit /home/ashton/.xinitrc -- :0 vt1 -nolisten tcp
+# Restart=always
+# Environment=DISPLAY=:0
+# User=ashton
+# WorkingDirectory=/home/ashton
+
+# [Install]
+# WantedBy=default.target
+
+# Then, run
+# loginctl enable-linger ashton
+# sudo -u ashton systemctl daemon-reload
+# sudo -u ashton systemctl enable infotainment.service
+
+# Ensure .Xauthority and .xinitrc exist
+
+# And finally, disable the default infotainment.service

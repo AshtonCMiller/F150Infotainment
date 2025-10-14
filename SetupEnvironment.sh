@@ -367,11 +367,8 @@ xset s noblank
 
 xsetroot -cursor-name left_ptr
 
-# Clear old logs
-rm -rf ~/applog.log
-
 # Launch the infotainment app
-/opt/myapp/appInfotainmentSystem >> "~/applog.log" 2>&1
+/opt/myapp/appInfotainmentSystem
 EOF
 
 chown ashton:ashton "$XINITRC"
@@ -405,7 +402,11 @@ xset -dpms
 # set background to black
 xsetroot -solid black
 
-exec /opt/infotainment/appInfotainmentSystem
+# Clear old logs
+rm -rf ~/applog.log
+
+# Launch the infotainment app
+/opt/myapp/appInfotainmentSystem >> "~/applog.log" 2>&1
 
 # if it exits, end X so it will restart.
 exit 0

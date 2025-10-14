@@ -367,8 +367,11 @@ xset s noblank
 
 xsetroot -cursor-name left_ptr
 
+# Clear old logs
+rm -rf ~/applog.log
+
 # Launch the infotainment app
-/opt/myapp/appInfotainmentSystem
+/opt/myapp/appInfotainmentSystem >> "~/applog.log" 2>&1
 EOF
 
 chown ashton:ashton "$XINITRC"
@@ -478,6 +481,10 @@ install_latest_release() {
 
 # Call the function at the end of the installer
 install_latest_release
+
+sudo chown -R ashton:ashton /opt
+sudo chown -R ashton:ashton /var/lib/infotainment
+
 echo -e "\n${GREEN}${BOLD}🎉 Installation completed successfully!${RESET}"
 echo -e "Reboot to apply update."
 # === Done ===
@@ -519,3 +526,6 @@ echo -e "Reboot to apply update."
 # Ensure .Xauthority and .xinitrc exist
 
 # And finally, disable the default infotainment.service
+
+
+# Need to chown -R ashton:ashton /var/lib/infotainment & /opt

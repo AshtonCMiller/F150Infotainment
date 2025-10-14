@@ -402,11 +402,18 @@ xset -dpms
 # set background to black
 xsetroot -solid black
 
+LOGFILE="$HOME/applog.log"
 # Clear old logs
-rm -rf ~/applog.log
+rm -rf $LOGFILE
 
-# Launch the infotainment app
-/opt/infotainment/appInfotainmentSystem >> "~/applog.log" 2>&1
+# Start logging everything
+exec > >(tee -a "$LOGFILE") 2>&1
+echo "=== X session started at $(date) ==="
+
+# Your commands
+/opt/myapp/appInfotainmentSystem
+
+echo "=== X session ended at $(date) ==="
 
 # if it exits, end X so it will restart.
 exit 0

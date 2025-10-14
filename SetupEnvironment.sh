@@ -368,7 +368,7 @@ xset s noblank
 xsetroot -cursor-name left_ptr
 
 # Launch the infotainment app
-/opt/myapp/appInfotainmentSystem
+/opt/infotainment/appInfotainmentSystem
 EOF
 
 chown ashton:ashton "$XINITRC"
@@ -406,7 +406,7 @@ xsetroot -solid black
 rm -rf ~/applog.log
 
 # Launch the infotainment app
-/opt/myapp/appInfotainmentSystem >> "~/applog.log" 2>&1
+/opt/infotainment/appInfotainmentSystem >> "~/applog.log" 2>&1
 
 # if it exits, end X so it will restart.
 exit 0
